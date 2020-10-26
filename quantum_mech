@@ -1,0 +1,68 @@
+import pygame as pg
+import numpy as np
+import random
+xs,ys = 900, 900
+t = 10
+n = 1
+l = 0
+body = [0]*n
+
+
+body[0] = [230,570,0,-np.radians(0),100]
+
+sVector = [0]*n
+for i in range(n):
+    sVector[i] = [body[i][2]*np.cos(body[i][3]),body[i][2]*np.sin(body[i][3])]
+pg.init()
+k = 0
+win = pg.display.set_mode((xs,ys))
+
+pg.display.set_caption("Симуляция")
+
+run = True
+
+def wall(body, sVector):
+    for i in range(len(body)):
+        if body[i][0] + sVector[i][0] > 900 or body[i][0] + sVector[i][0] < 0:
+            sVector[i][0] *= -1
+        if body[i][1] + sVector[i][1] > 900 or body[i][1] + sVector[i][1] < 0:
+            sVector[i][1] *= -1
+        body[i][0] += random.randint(-5, 5)
+        body[i][1] += random.randint(-5, 5)
+        
+
+
+def moving(x,y,xm,ym,mass,t):
+    R = np.sqrt((xm-x)**2+(ym-y)**2)
+
+
+    Gspeed = (40*mass/R**2) - (10*mass/R**2)**2
+    Gangle = np.arccos((xm-x)/R)
+
+    if y <= ym:
+        GdX = Gspeed*np.cos(Gangle)
+        GdY = Gspeed*np.sin(Gangle)
+
+    if y >= ym:
+        GdX = Gspeed * np.cos(Gangle)
+        GdY = -Gspeed * np.sin(Gangle)
+
+    return [GdX/t,GdY/t]
+while run:
+    #win.fill((0,0,0))
+    for event in pg.event.get():
+        if event.type == pg.QUIT:
+            run == False
+    for i in range (n):
+        for j in range(1,n):
+            sVector[i][0] += moving(body[i][0], body[i][1], body[i-j][0], body[i-j][1], body[i-j][4], t)[0]
+            sVector[i][1] += moving(body[i][0], body[i][1], body[i-j][0], body[i-j][1], body[i-j][4], t)[1]
+        
+        sVector[i][0] /= 1.1 
+        sVector[i][0] /= 1.1
+
+        body[i][0] += sVector[i][0] / t
+        body[i][1] += sVector[i][1] / t
+        pg.draw.rect(win, (255, 255/n*i, 255), (body[i][0], body[i][1], 3, 3))
+    wall(body, sVector)
+    pg.display.update()
